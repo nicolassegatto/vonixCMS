@@ -1,16 +1,14 @@
-FROM node:24-alpine
+FROM directus/directus:latest
 
-WORKDIR /app
+# Copy custom extensions
+COPY ./extensions /directus/extensions
 
-COPY . .
+# Install dependencies for extensions (if any)
+WORKDIR /directus/extensions
+RUN if [ -d "/directus/extensions" ]; then for dir in */; do if [ -f "$dir/package.json" ]; then cd "$dir" && npm install && cd ..; fi; done; fi
 
-RUN npm install -g directus
+# Set working directory back to Directus
+WORKDIR /directus
 
-# Instala dependências de extensões, se existir package.json
-RUN if [ -f package.json ]; then npm install; fi
-
-RUN mkdir -p /app/uploads /app/database
-
+# Expose port
 EXPOSE 8055
-
-CMD ["directus", "start"]
